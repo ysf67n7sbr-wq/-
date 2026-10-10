@@ -6,6 +6,7 @@ on:
 permissions:
   contents: read
   pages: write
+  actions: write
   id-token: write
 concurrency:
   group: pages
@@ -31,6 +32,27 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Remove duplicate and stale Pages artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifacts=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" --jq '.artifacts[] | select(.name == "github-pages") | [.id, .created_at, .workflow_run.id] | @tsv' | sort -k2,2r)
+          kept_current=0
+          while IFS=
+\t' read -r id created run_id; do
+            [[ -z "${id:-}" ]] && continue
+            if [[ "$run_id" == "$GITHUB_RUN_ID" && "$kept_current" -eq 0 ]]; then
+              kept_current=1
+              continue
+            fi
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}" >/dev/null
+          done <<< "$artifacts"
+          if [[ "$kept_current" -ne 1 ]]; then
+            echo "Current github-pages artifact was not found" >&2
+            exit 1
+          fi
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
