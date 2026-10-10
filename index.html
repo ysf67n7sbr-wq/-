@@ -66,6 +66,35 @@ function buildCar(color,player=false){
    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.215,16),grille);hub.rotation.z=Math.PI/2;hub.position.copy(wheel.position);g.add(hub);
    for(let a=0;a<5;a++){const spoke=box(.025,.27,.035,chrome,x+(x<0?-.115:.115),.32,z);spoke.rotation.y=a*Math.PI/5}
  }
+ // Rear styling based on 2018-2019 Sonata reference photos: wide slim lamps, trunk lip and bumper
+ box(1.54,.23,.10,paint,0,.68,1.69); // sculpted trunk face
+ box(1.56,.045,.055,chrome,0,.79,1.745); // chrome trunk accent
+ // Thin red lamp signature across the rear, with brighter outer lamp clusters
+ box(1.48,.075,.055,new THREE.MeshBasicMaterial({color:0x8e1028,emissive:0x570012,emissiveIntensity:1.2}),0,.63,1.875);
+ for(const x of [-.68,.68]){
+   box(.38,.15,.075,new THREE.MeshBasicMaterial({color:0xff173c,emissive:0x7e001b,emissiveIntensity:1.5}),x,.64,1.89);
+   box(.23,.055,.078,new THREE.MeshBasicMaterial({color:0xffd6df,emissive:0x5b1524,emissiveIntensity:.8}),x,.57,1.895);
+   box(.26,.045,.035,chrome,x,.43,1.87); // bumper reflector trim
+ }
+ // Rear number plate with readable SONATA lettering
+ const plateCanvas=document.createElement('canvas');plateCanvas.width=512;plateCanvas.height=128;
+ const ctx=plateCanvas.getContext('2d');ctx.fillStyle='#e7edf4';ctx.fillRect(0,0,512,128);
+ ctx.strokeStyle='#aab8c7';ctx.lineWidth=8;ctx.strokeRect(4,4,504,120);
+ ctx.fillStyle='#172130';ctx.font='bold 64px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SONATA',256,66);
+ const plateTex=new THREE.CanvasTexture(plateCanvas);
+ const plate=new THREE.Mesh(new THREE.PlaneGeometry(.66,.17),new THREE.MeshBasicMaterial({map:plateTex}));
+ plate.position.set(0,.47,1.895);g.add(plate);
+ // Hyundai-style oval emblem (stylised 3D badge)
+ const badge=new THREE.Mesh(new THREE.TorusGeometry(.105,.018,8,24),chrome);badge.position.set(0,.76,1.79);g.add(badge);
+ const badgeSlash=box(.025,.14,.025,chrome,0,.76,1.805);badgeSlash.rotation.z=-.28;
+ // Rear glass reflection and high-mounted brake light
+ box(1.18,.035,.035,new THREE.MeshBasicMaterial({color:0x263d56,metalness:.4,roughness:.2}),0,1.17,.72);
+ box(.55,.025,.025,new THREE.MeshBasicMaterial({color:0xff2548,emissive:0x8c001a,emissiveIntensity:1}),0,1.29,.72);
+ // Dual dark exhaust outlets
+ for(const x of [-.53,.53]){
+   const outlet=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.035,16),chrome);outlet.rotation.x=Math.PI/2;outlet.position.set(x,.34,1.89);g.add(outlet);
+   const hole=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.04,16),grille);hole.rotation.x=Math.PI/2;hole.position.set(x,.34,1.91);g.add(hole);
+ }
  // Hood creases and door seams
  for(const x of [-.47,.47]){const crease=box(.025,.012,.82,chrome,x,.735,-1.18);crease.material=paint}
  for(const x of [-.78,.78])for(const z of [-.15,.62])box(.018,.012,.48,chrome,x,.72,z);
