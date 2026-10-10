@@ -118,7 +118,7 @@ function buildCar(color,player=false){
  }
  return g
 }
-const player=buildCar(0x080b12,true);player.position.set(0,0,4);scene.add(player);
+const player=buildCar(0x080b12,true);player.position.set(0,0,4);scene.add(player);player.visible=false;camera.position.set(0,1.25,2.9);camera.fov=76;camera.updateProjectionMatrix();
 const traffic=[];const colors=[0x9baec4,0x6c2332,0x17294a,0xc5cbd3,0x4c435e,0x42626a];
 function spawn(){const lane=[-4,-2,0,2,4][Math.floor(Math.random()*5)];const c=buildCar(colors[Math.floor(Math.random()*colors.length)]);c.scale.setScalar(.9+Math.random()*.12);c.position.set(lane,0,-110);scene.add(c);traffic.push({mesh:c,passed:false,pace:.78+Math.random()*.42,lane})}
 const stars=[];for(let i=0;i<260;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(.035,5,5),new THREE.MeshBasicMaterial({color:Math.random()<.5?0x8fcaff:0xffffff}));s.position.set((Math.random()-.5)*100,Math.random()*32,-Math.random()*190);scene.add(s);stars.push(s)}
@@ -131,6 +131,6 @@ function crash(){active=false;best=Math.max(best,Math.floor(score));localStorage
 function frame(t){requestAnimationFrame(frame);const dt=Math.min((t-last)/1000||0,.04);last=t;if(active){score+=dt*speed/10;speed=Math.min(320,170+score*.12);spawnT-=dt;if(spawnT<=0){spawn();spawnT=Math.max(.52,1.25-score/500)}const dir=(keys.r?1:0)-(keys.l?1:0);player.position.x=THREE.MathUtils.clamp(player.position.x+dir*dt*7.5,-4.55,4.55);player.rotation.z=THREE.MathUtils.damp(player.rotation.z,-dir*.075,7,dt);
 for(let i=traffic.length-1;i>=0;i--){const o=traffic[i];o.mesh.position.z+=speed*.12*dt*o.pace;if(!o.passed&&o.mesh.position.z>5){o.passed=true;score+=25}if(o.mesh.position.z>18){scene.remove(o.mesh);traffic.splice(i,1);continue}if(Math.abs(o.mesh.position.z-player.position.z)<2.2&&Math.abs(o.mesh.position.x-player.position.x)<1.48){crash();break}}
 stripes.forEach(s=>{s.position.z+=speed*.12*dt;if(s.position.z>12)s.position.z-=208});document.getElementById('score').textContent=String(Math.floor(score)).padStart(5,'0');document.getElementById('speed').textContent=Math.floor(speed)}
-stars.forEach(s=>{s.position.z+=(active?speed*.045:1)*dt;if(s.position.z>12){s.position.z=-190;s.position.x=(Math.random()-.5)*100;s.position.y=Math.random()*32}});camera.position.x=THREE.MathUtils.damp(camera.position.x,player.position.x*.23,2.2,dt);camera.lookAt(player.position.x*.15,.35,-12);renderer.render(scene,camera)}
+stars.forEach(s=>{s.position.z+=(active?speed*.045:1)*dt;if(s.position.z>12){s.position.z=-190;s.position.x=(Math.random()-.5)*100;s.position.y=Math.random()*32}});camera.position.x=THREE.MathUtils.damp(camera.position.x,player.position.x,5.5,dt);camera.position.y=1.25;camera.position.z=2.9;camera.lookAt(camera.position.x+player.rotation.z*.55,.9,-12);renderer.render(scene,camera)}
 requestAnimationFrame(frame);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script></body></html>
