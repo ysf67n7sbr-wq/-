@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Космос: уклонение</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030611;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}canvas{display:block}#hud{position:fixed;inset:0;pointer-events:none;padding:16px;display:flex;flex-direction:column;justify-content:space-between;text-shadow:0 2px 12px #000}#top{display:flex;justify-content:space-between;gap:10px}.pill{background:#101a32cc;border:1px solid #8abaff44;border-radius:14px;padding:10px 14px;backdrop-filter:blur(8px)}#score{font-size:21px;font-weight:800}#hint{font-size:12px;color:#b9d7ff;margin-top:3px}#overlay{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at center,#111d3bcc,#02040cf2);padding:20px}#panel{max-width:420px;text-align:center;padding:28px 24px;border:1px solid #8abaff55;border-radius:24px;background:#0b1227ed;box-shadow:0 0 70px #2767ff22}h1{font-size:clamp(30px,7vw,48px);line-height:1.02;margin:0 0 12px}p{color:#c7d5f4;line-height:1.5}.btn{border:0;border-radius:14px;padding:14px 24px;font-size:16px;font-weight:800;color:#07101e;background:linear-gradient(135deg,#8be9ff,#7a9dff);cursor:pointer}#controls{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 22px;pointer-events:none}.move{pointer-events:auto;width:64px;height:64px;border-radius:50%;border:1px solid #b8d8ff66;background:#17264ddd;color:white;font-size:28px;touch-action:none;user-select:none}#tip{font-size:12px;color:#93a9d4}
+</style>
+</head>
+<body>
+<div id="hud"><div id="top"><div class="pill"><div id="score">Счёт: 0</div><div id="hint">Уклоняйся от комет</div></div><div class="pill">🚀 <span id="best">Рекорд: 0</span></div></div><div class="pill" style="align-self:center;font-size:12px;color:#c4d5f6">← → / A D или кнопки на экране</div></div>
+<div id="controls"><button class="move" id="left" aria-label="Влево">←</button><button class="move" id="right" aria-label="Вправо">→</button></div>
+<div id="overlay"><div id="panel"><div style="font-size:42px;margin-bottom:8px">🌌 🚀 ☄️</div><h1>КОСМОС:<br>УКЛОНЕНИЕ</h1><p>Лети сквозь космос, обходи кометы и продержись как можно дольше. Скорость постепенно растёт!</p><p id="tip">На телефоне используй кнопки ◀ ▶</p><button class="btn" id="start">ПОЕХАЛИ!</button></div></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x030611);scene.fog=new THREE.Fog(0x030611,18,95);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,140);camera.position.set(0,5,10);camera.lookAt(0,0,-12);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.ACESFilmicToneMapping;document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0x9ccaff,0x16152c,2));const light=new THREE.PointLight(0x6d9cff,45,60);light.position.set(0,8,1);scene.add(light);
+const starPos=[];for(let i=0;i<1000;i++)starPos.push((Math.random()-.5)*90,Math.random()*45-5,-Math.random()*110);const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(starPos,3));const stars=new THREE.Points(sg,new THREE.PointsMaterial({color:0xbad8ff,size:.11}));scene.add(stars);
+const ship=new THREE.Group();scene.add(ship);
+const body=new THREE.Mesh(new THREE.ConeGeometry(.48,1.65,8),new THREE.MeshStandardMaterial({color:0xe9f4ff,metalness:.55,roughness:.25,emissive:0x172f66}));body.rotation.x=Math.PI/2;ship.add(body);
+const nose=new THREE.Mesh(new THREE.ConeGeometry(.29,.62,8),new THREE.MeshStandardMaterial({color:0x70dfff,emissive:0x1769ff,emissiveIntensity:1.2}));nose.rotation.x=-Math.PI/2;nose.position.z=-.92;ship.add(nose);
+const finMat=new THREE.MeshStandardMaterial({color:0x698cff,metalness:.4,roughness:.3});for(const s of [-1,1]){const fin=new THREE.Mesh(new THREE.BoxGeometry(.16,.48,.48),finMat);fin.position.set(s*.4,-.12,.25);fin.rotation.z=s*-.25;ship.add(fin)}
+const flame=new THREE.Mesh(new THREE.ConeGeometry(.22,.8,8),new THREE.MeshBasicMaterial({color:0xff9a45}));flame.rotation.x=Math.PI/2;flame.position.z=.95;ship.add(flame);ship.position.set(0,0,3);
+const rocks=[],rockGeo=new THREE.IcosahedronGeometry(1,1),rockMats=[0x8b91a8,0x686d82,0x9c7b70,0x5f7b99].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:1,flatShading:true}));
+function spawn(){const r=.55+Math.random()*.75;const rock=new THREE.Mesh(rockGeo,rockMats[Math.floor(Math.random()*rockMats.length)]);rock.scale.set(r*(.7+Math.random()*.7),r*(.7+Math.random()*.6),r);rock.position.set((Math.random()-.5)*10,(Math.random()-.5)*2.2,-62);rock.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);scene.add(rock);const glow=new THREE.Mesh(new THREE.SphereGeometry(r*1.15,10,8),new THREE.MeshBasicMaterial({color:0xff8b55,transparent:true,opacity:.08,wireframe:true}));rock.add(glow);rocks.push({mesh:rock,r})}
+let running=false,score=0,best=Number(localStorage.getItem('cosmosBest')||0),speed=19,spawnTimer=0,last=0;document.getElementById('best').textContent='Рекорд: '+best;
+const keys={left:false,right:false};function bindButton(id,key){const el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,()=>keys[key]=false)}bindButton('left','left');bindButton('right','right');
+addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=true;if(['ArrowRight','d','D'].includes(e.key))keys.right=true;if(e.key===' '&&!running)start()});addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false});
+function showStart(){document.getElementById('panel').innerHTML='<div style="font-size:42px;margin-bottom:8px">🌌 🚀 ☄️</div><h1>КОСМОС:<br>УКЛОНЕНИЕ</h1><p>Лети сквозь космос, обходи кометы и продержись как можно дольше. Скорость постепенно растёт!</p><p id="tip">На телефоне используй кнопки ◀ ▶</p><button class="btn" id="start">ПОЕХАЛИ!</button>';document.getElementById('start').addEventListener('click',start)}
+function start(){for(const c of rocks)scene.remove(c.mesh);rocks.length=0;ship.position.x=0;score=0;speed=19;spawnTimer=0;running=true;document.getElementById('overlay').style.display='none';last=performance.now()}
+document.getElementById('start').addEventListener('click',start);
+function endGame(){running=false;best=Math.max(best,Math.floor(score));localStorage.setItem('cosmosBest',best);document.getElementById('best').textContent='Рекорд: '+best;document.getElementById('panel').innerHTML='<div style="font-size:42px">💥</div><h1>СТОЛКНОВЕНИЕ!</h1><p>Твой счёт: <b>'+Math.floor(score)+'</b><br>Рекорд: <b>'+best+'</b></p><button class="btn" id="again">ЕЩЁ РАЗ</button>';document.getElementById('overlay').style.display='grid';document.getElementById('again').addEventListener('click',()=>{showStart();start()})}
+function animate(t){requestAnimationFrame(animate);const dt=Math.min((t-last)/1000||0,.04);last=t;stars.rotation.y+=dt*.003;
+if(running){score+=dt*10;speed=19+Math.min(score*.035,28);spawnTimer-=dt;if(spawnTimer<=0){spawn();spawnTimer=Math.max(.28,1.0-score/240)}const move=(keys.right?1:0)-(keys.left?1:0);ship.position.x=THREE.MathUtils.clamp(ship.position.x+move*dt*9,-4.6,4.6);ship.rotation.z=THREE.MathUtils.damp(ship.rotation.z,-move*.2,5,dt);flame.scale.y=.7+Math.random()*.7;
+for(let i=rocks.length-1;i>=0;i--){const c=rocks[i];c.mesh.position.z+=speed*dt;c.mesh.rotation.x+=dt*.7;c.mesh.rotation.y+=dt*.9;if(c.mesh.position.z>8){scene.remove(c.mesh);rocks.splice(i,1);continue}const dx=c.mesh.position.x-ship.position.x,dy=c.mesh.position.y-ship.position.y;if(c.mesh.position.z>1.6&&c.mesh.position.z<4.2&&Math.abs(dx)<c.r+.48&&Math.abs(dy)<c.r+.55){endGame();break}}
+document.getElementById('score').textContent='Счёт: '+Math.floor(score)}
+renderer.render(scene,camera)}
+requestAnimationFrame(animate);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body></html>
