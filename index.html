@@ -114,8 +114,6 @@ function buildCar(color,player=false){
  for(const x of [-.47,.47]){const crease=box(.025,.012,.82,chrome,x,.735,-1.18);crease.material=paint}
  for(const x of [-.78,.78])for(const z of [-.15,.62])box(.018,.012,.48,chrome,x,.72,z);
  if(player){
-   const beams=new THREE.MeshBasicMaterial({color:0xaedfff,transparent:true,opacity:.085,side:THREE.DoubleSide});
-   for(const x of [-.62,.62]){const cone=new THREE.Mesh(new THREE.ConeGeometry(.95,11,18,1,true),beams);cone.rotation.x=-Math.PI/2;cone.position.set(x,.16,-6.1);g.add(cone)}
    const under=new THREE.Mesh(new THREE.BoxGeometry(1.25,.025,2.5),new THREE.MeshBasicMaterial({color:0x1b75ff,transparent:true,opacity:.18}));under.position.set(0,.16,0);g.add(under);
  }
  return g
